@@ -9,6 +9,8 @@ def set_gravity(model, x=0, y=0, z=-9.81):
     print(f"Gravity set to: [{x}, {y}, {z}] m/s²")
     # TODO: Set the gravity vector in the model to the provided x, y, z values
 
+    model.opt.gravity = (x,y,z)
+
 
 def run_sim(viewer, model, data, seconds: int = 10, dt: float = 0.002):
     step = 0
@@ -32,10 +34,10 @@ def main():
 
     ds = 0.002
 
-    run_sim(viewer, model, data, seconds=10, dt=ds)
+    run_sim(viewer, model, data, seconds=5, dt=ds)
 
-    set_gravity(model, z=-2.2)
-    run_sim(viewer, model, data, seconds=10, dt=ds)
+    set_gravity(model, z=-9.81)
+    run_sim(viewer, model, data, seconds=100, dt=ds)
 
 
 if __name__ == '__main__':
