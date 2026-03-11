@@ -32,10 +32,10 @@ def main():
 
     ds = 0.002
 
-    run_sim(viewer, model, data, seconds=10, dt=ds)
+    run_sim(viewer, model, data, seconds=5, dt=ds)
 
     set_gravity(model, z=-2.2)
-    run_sim(viewer, model, data, seconds=10, dt=ds)
+    run_sim(viewer, model, data, seconds=60, dt=ds)
 
 
 if __name__ == '__main__':

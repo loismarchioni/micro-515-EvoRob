@@ -22,7 +22,7 @@
     <light pos="0 0 20" dir="0 0 -1" directional="false"/>
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" friction="150 150 150"/>
 
-    <geom name="slope" type="box" size="5 0.25 0.01" pos="4.5 0 0.0" rgba="0.75 0.55 0.1 1"
+    <geom name="slope" type="box" size="5 0.25 0.03" pos="4.5 0 0.0" rgba="0.75 0.55 0.1 1"
               euler="0 5 0" condim="4"/>
 
   </worldbody>

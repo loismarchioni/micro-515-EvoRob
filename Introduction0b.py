@@ -127,7 +127,7 @@ def main():
 
     #%% Understanding the world
     # TODO: can you improve the genotype - you will also need to modify the PassiveWalkerWorld class!
-    genotype = [0.3, 0.2, 0.1, 0.3, 0.2, 0.1]
+    genotype = [0.3, 0.2, 0.1, 0.3, 0.2, 0.1]   # lengthes of the leg segments [Rup, Rlow, Rfoot, Lup, Llow, Lfoot]
     world.visualise_individual(genotype)
 
     results_dir = join(ROOT_DIR, "results", ENV_NAME, "EA")
