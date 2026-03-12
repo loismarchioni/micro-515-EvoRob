@@ -44,7 +44,7 @@ class World(ABC):
         print(f"Achieved reward: {np.sum(rewards_list)}")
 
         import imageio
-        imageio.mimsave(video_name, frames, fps=30)  # Set frames per second (fps)
+        imageio.mimsave(video_name, frames, fps=200)  # Set frames per second (fps)
 
     def visualise_individual(self, genotype, controller: Controller|None = None, n_steps: int = 50000):
         if controller is None:

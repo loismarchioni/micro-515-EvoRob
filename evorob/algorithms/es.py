@@ -89,13 +89,16 @@ class ES(EA):
     def initialise_x0(self):
         """Initialises the first population."""
         # TODO: generate the initial population mean vector (current_mean)
-        mean_vector = np.tile(self.current_mean, [self.n_pop, 1])
+        # mean_vector = np.tile(self.current_mean, [self.n_pop, 1])
+        mean_vector = np.random.uniform(low=self.min, high=self.max, size=(self.n_pop, self.n_params))
         return mean_vector
 
     def update_sigma(self):
         """Update the perturbation strength (sigma)."""
         # TODO: implement a decay of the sigma value over generations, ensuring it does not go below min_sigma
-        self.current_sigma = self.current_sigma*np.exp(self.sigma_decay_rate*np.random.normal(0,1)) if self.current_sigma >= self.min_sigma else self.min_sigma
+        sigma = self.current_sigma * self.sigma_decay_rate
+        # sigma = self.current_sigma*np.exp(1/np.sqrt(self.n_params)*np.random.normal())
+        self.current_sigma = max(sigma, self.min_sigma)
 
     def sort_and_select_parents(self, population, fitness, num_parents):
         """Sorts the population based on fitness and selects the top individuals as parents."""
@@ -104,7 +107,7 @@ class ES(EA):
             population = np.array(population)
 
         parent_population = population[np.argsort(-fitness)][:num_parents]
-        parent_fitness = np.argsort(-fitness)[:num_parents]
+        parent_fitness = fitness[np.argsort(-fitness)][:num_parents]
 
         return parent_population, parent_fitness
 
