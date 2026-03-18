@@ -143,6 +143,8 @@ def test_exercise_implementation():
 
 def plot_fitness(full_f, output_dir):
     """Save a fitness-over-generations plot to the checkpoint directory."""
+    import matplotlib
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     fitness_array = np.array(full_f)  # (n_generations, n_pop)
@@ -280,6 +282,11 @@ def run_evolution_neural_controller(
             while True:
                 action = evaluation_controller.get_action(obs)
                 obs, reward, terminated, truncated, _ = evaluation_env.step(action)
+
+                # modified
+                reward = float(np.asarray(reward).item() if np.asarray(reward).ndim > 0 else reward)
+                #
+
                 trial_reward += reward
 
                 if np.logical_or(terminated, truncated):
@@ -436,8 +443,8 @@ if __name__ == "__main__":
 
     # Uncomment to run full evolution:
     run_evolution_neural_controller(
-        num_generations=100,
-        population_size=10,
+        num_generations=200,    # 300 (min)
+        population_size=250,    # 250 (min)
         ckpt_interval=5,
         checkpoint_path=None,
         run_evaluation=True,

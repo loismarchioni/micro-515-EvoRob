@@ -233,6 +233,11 @@ def run_evolution_oscillatory_controller(
             while True:
                 action = evaluation_controller.get_action(obs)
                 obs, reward, terminated, truncated, _ = evaluation_env.step(action)
+
+                # modified
+                reward = float(np.asarray(reward).item() if np.asarray(reward).ndim > 0 else reward)
+                #
+                
                 trial_reward += reward
 
                 if np.logical_or(terminated, truncated):
@@ -287,7 +292,10 @@ def evaluate_checkpoint(
 
     # --- Run evaluation episodes on the real Ant-v5 ---
     env = gym.make(
-        "Ant-v5", use_contact_forces=False, max_episode_steps=max_episode_steps
+        "Ant-v5",
+        # use_contact_forces=False,   # old parameter name, seems not supported in this version of gymnasium
+        include_cfrc_ext_in_observation=False,
+        max_episode_steps=max_episode_steps
     )
     rng = np.random.default_rng(seed)
     episode_rewards = []
@@ -320,7 +328,8 @@ def evaluate_checkpoint(
     print("\nRecording video...")
     video_env = gym.make(
         "Ant-v5",
-        use_contact_forces=False,
+        # use_contact_forces=False,   # old parameter name, seems not supported in this version of gymnasium
+        include_cfrc_ext_in_observation=False,
         max_episode_steps=max_episode_steps,
         render_mode="rgb_array",
     )

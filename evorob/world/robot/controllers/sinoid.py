@@ -31,7 +31,12 @@ class OscillatoryController(Controller):
         # - self.frequencies: uniform random in [0.5, 2.0] (shape: output_size)
         # - self.phases: uniform random in [0, 2*pi] (shape: output_size)
         # Hint: Use np.random.uniform(low, high, size)
-        raise NotImplementedError("TODO: Initialize oscillatory parameters")
+
+        self.amplitudes  = np.random.uniform(low=0.1, high=1.0, size=output_size)
+        self.frequencies = np.random.uniform(low=0.5, high=2.0, size=output_size)
+        self.phases      = np.random.uniform(low=0.0, high=2*np.pi, size=output_size)
+
+        # raise NotImplementedError("TODO: Initialize oscillatory parameters")
 
     def get_action(self, state):
         """Generate oscillatory actions based on time.
@@ -50,6 +55,15 @@ class OscillatoryController(Controller):
         # For vectorized environments (batch of observations):
         # Check if state is 2D, if so replicate actions for each environment
         # Hint: Use np.tile(actions, (batch_size, 1))
+
+        actions = self.amplitudes * np.sin(self.frequencies * self.time_step - self.phases)
+        self.time_step += 0.01
+
+        if state.ndim > 1:
+            actions = np.tile(actions, (np.array(state).shape[0], 1))
+
+        return np.clip(actions, a_min=-1.0, a_max=1.0)
+
         raise NotImplementedError("TODO: Implement oscillatory action generation")
 
     def set_weights(self, weights):
@@ -63,6 +77,13 @@ class OscillatoryController(Controller):
         # weights structure: [amp1, amp2, ..., freq1, freq2, ..., phase1, phase2, ...]
         # Update self.amplitudes, self.frequencies, self.phases accordingly
         # Reset time to 0
+
+        self.amplitudes  = weights[:self.output_size]
+        self.frequencies = weights[self.output_size:2*self.output_size]
+        self.phases      = weights[2*self.output_size:]
+        self.time_step   = 0.0
+
+        return
         raise NotImplementedError("TODO: Implement parameter setting")
 
     def geno2pheno(self, genotype):
@@ -77,6 +98,9 @@ class OscillatoryController(Controller):
             int: 3 * output_size (amplitude, frequency, phase for each actuator)
         """
         # TODO: Return the total number of parameters
+
+        return 3*self.output_size
+
         raise NotImplementedError("TODO: Compute number of parameters")
 
     def reset_controller(self):

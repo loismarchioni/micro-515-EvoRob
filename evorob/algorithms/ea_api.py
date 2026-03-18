@@ -1,7 +1,7 @@
 import numpy as np
 
 from evorob.algorithms.base_ea import EA
-
+import cma
 
 class EvoAlgAPI(EA):
     """Evolutionary algorithm API wrapper.
@@ -42,11 +42,19 @@ class EvoAlgAPI(EA):
         self.x = None
         self.f = None
 
-        raise NotImplementedError(
-            "TODO: Initialize your chosen EA framework.\n"
-            "Recommended: pip install cma, then import cma and create CMAEvolutionStrategy.\n"
-            "See https://github.com/CMA-ES/pycma for documentation."
-        )
+        # EA framework
+        # x0      = np.random.uniform(low=-1, high=1, size=(self.n_params))
+        self.es = cma.CMAEvolutionStrategy(x0      = np.zeros(self.n_params),
+                                           sigma0  = 0.2,
+                                           options = {'popsize': population_size}
+                                           )
+
+
+        # raise NotImplementedError(
+        #     "TODO: Initialize your chosen EA framework.\n"
+        #     "Recommended: pip install cma, then import cma and create CMAEvolutionStrategy.\n"
+        #     "See https://github.com/CMA-ES/pycma for documentation."
+        # )
 
     def ask(self) -> np.ndarray:
         """Sample population from the algorithm.
@@ -57,6 +65,9 @@ class EvoAlgAPI(EA):
         """
         # TODO: Get new population from your EA
         # Make sure the returned array has shape (population_size, n_params)
+
+        self.x = np.array(self.es.ask())
+        return self.x
 
         raise NotImplementedError(
             "TODO: Implement ask() to sample new population.\n"
@@ -76,6 +87,9 @@ class EvoAlgAPI(EA):
         # Note: Some algorithms minimize, others maximize.
         # Adjust accordingly (negate fitnesses if needed).
         
+        # fitnesses = -fitnesses
+        self.es.tell(population, -fitnesses)
+
         # After updating the EA, do bookkeeping for checkpointing:
         self.full_f.append(fitnesses)
         self.full_x.append(population)
@@ -92,8 +106,8 @@ class EvoAlgAPI(EA):
             self.save_checkpoint()
         self.current_gen += 1
 
-        raise NotImplementedError(
-            "TODO: Implement tell() to update the EA.\n"
-            "Pass the population and their fitness values to update the search distribution.\n"
-            "Don't forget to add the bookkeeping code shown above for checkpointing!"
-        )
+        # raise NotImplementedError(
+        #     "TODO: Implement tell() to update the EA.\n"
+        #     "Pass the population and their fitness values to update the search distribution.\n"
+        #     "Don't forget to add the bookkeeping code shown above for checkpointing!"
+        # )
