@@ -237,7 +237,7 @@ def run_evolution_oscillatory_controller(
                 # modified
                 reward = float(np.asarray(reward).item() if np.asarray(reward).ndim > 0 else reward)
                 #
-                
+
                 trial_reward += reward
 
                 if np.logical_or(terminated, truncated):
@@ -389,7 +389,7 @@ if __name__ == "__main__":
     # Uncomment to run full evolution:
     run_evolution_oscillatory_controller(
         num_generations=100,
-        population_size=10,
+        population_size=50,
         ckpt_interval=5,
         checkpoint_path=None,
         run_evaluation=True,
