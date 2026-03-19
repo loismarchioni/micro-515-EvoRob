@@ -32,6 +32,9 @@ class EvoAlgAPI(EA):
         self.n_gen = num_generations
         self.population_size = population_size
         
+        # # load checkpoint from previous learning. Change checkpoint folder in base_ea.py
+        # self.load_checkpoint()
+
         # % bookkeeping for base EA
         self.directory_name = output_dir
         self.current_gen = 0
@@ -41,11 +44,12 @@ class EvoAlgAPI(EA):
         self.f_best_so_far = -np.inf
         self.x = None
         self.f = None
-
+        
+        
         # EA framework
         # x0      = np.random.uniform(low=-1, high=1, size=(self.n_params))
         self.es = cma.CMAEvolutionStrategy(x0      = np.zeros(self.n_params),
-                                           sigma0  = 0.5,
+                                           sigma0  = 1.0,
                                            options = {'popsize': population_size}
                                            )
 

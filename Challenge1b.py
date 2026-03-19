@@ -402,5 +402,5 @@ if __name__ == "__main__":
     # Replace the path with your actual checkpoint folder.
     # ----------------------------------------------------------------
     # evaluate_checkpoint(
-    #     checkpoint_dir="results/REPLACE_WITH_YOUR_CHECKPOINT_FOLDER",
+    #     checkpoint_dir="results/oscillo2",
     # )

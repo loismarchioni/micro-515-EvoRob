@@ -3,10 +3,13 @@ import os
 import numpy as np
 
 from evorob.utils.filesys import search_file_list
+from evorob.utils.filesys import get_project_root
+from pathlib import Path
 
 
 class EA:
-    directory_name = ""
+    directory_name = "" #str(Path(get_project_root()) / Path("results/oscillo1"))
+    root = str(get_project_root())
     n_gen = 0
     current_gen = 0
     full_x = []

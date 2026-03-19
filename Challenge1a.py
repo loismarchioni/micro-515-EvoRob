@@ -443,8 +443,8 @@ if __name__ == "__main__":
 
     # Uncomment to run full evolution:
     run_evolution_neural_controller(
-        num_generations=200,    # 300 (min)
-        population_size=250,    # 250 (min)
+        num_generations=300,    # 300 (min)
+        population_size=300,    # 250 (min)
         ckpt_interval=5,
         checkpoint_path=None,
         run_evaluation=True,
