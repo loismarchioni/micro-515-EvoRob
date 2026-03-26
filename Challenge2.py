@@ -1,6 +1,8 @@
 import os
+import traceback
 
-os.environ.setdefault("MUJOCO_GL", "egl")
+# os.environ.setdefault("MUJOCO_GL", "egl")       # for linux
+os.environ.setdefault("MUJOCO_GL", "wgl")       # for windows       
 
 from datetime import datetime
 from pathlib import Path
@@ -126,6 +128,7 @@ def test_exercise_implementation():
         print("   👉 Check your sorting logic")
         exit(1)
     except Exception as e:
+        traceback.print_exc()
         print(f"❌ Error: {type(e).__name__}: {str(e)}")
         exit(1)
 
@@ -807,21 +810,21 @@ if __name__ == "__main__":
     # Run unit tests first
     test_exercise_implementation()
 
-    # Uncomment to run full NSGA-II evolution:
-    run_evolution_nsga(
-        num_generations=100,
-        population_size=10,
-        run_evaluation=False,
-        compute_score=True,
-        random_seed=42,
-        n_repeats=2,
-        mutation_prob=0.3,
-        crossover_prob=0.5,
-        bounds=(-1, 1),
-        n_parents=10,
-        ckpt_interval=5,
-        checkpoint_path=None,
-    )
+    # # Uncomment to run full NSGA-II evolution:
+    # run_evolution_nsga(
+    #     num_generations=100,
+    #     population_size=10,
+    #     run_evaluation=False,
+    #     compute_score=True,
+    #     random_seed=42,
+    #     n_repeats=2,
+    #     mutation_prob=0.3,
+    #     crossover_prob=0.5,
+    #     bounds=(-1, 1),
+    #     n_parents=10,
+    #     ckpt_interval=5,
+    #     checkpoint_path=None,
+    # )
 
     # Uncomment to replay your checkpoint
     # replay_checkpoint(

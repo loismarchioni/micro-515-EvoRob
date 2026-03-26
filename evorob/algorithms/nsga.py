@@ -290,6 +290,14 @@ class NSGAII(EA):
         """
         # TODO: Implement Pareto dominance check
         # Use all() and any() to check the two conditions for dominance
+
+        # cond1: individual is better or equal to other_individual for all k objectives
+        # cond2: individual is better to other_individual in at least one objective
+        cond1 = all(x >= y for x,y in zip(individual, other_individual))
+        cond2 = any(x > y  for x,y in zip(individual, other_individual))
+
+        return cond1 and cond2
+    
         
         raise NotImplementedError(
             "TODO: Implement dominance check.\n"
@@ -325,12 +333,16 @@ class NSGAII(EA):
                 # does individual_a dominate individual_b?
                 if self.dominates(fitness[individual_a], fitness[individual_b]):
                     # TODO: Track that individual_a dominates individual_b
-                    pass  # Replace with your code
+
+                    domination_lists[individual_a].append(individual_b)
+
 
                 # does individual_b dominate individual_a?
                 elif self.dominates(fitness[individual_b], fitness[individual_a]):
                     # TODO: Track that individual_a is dominated by individual_b
-                    pass  # Replace with your code
+                    
+                    domination_counts[individual_a] += 1
+
 
             # if solution dominates all
             if domination_counts[individual_a] == 0:
@@ -352,7 +364,12 @@ class NSGAII(EA):
                 for individual_b in domination_lists[individual_a]:
                     # TODO: Update domination count and check if individual_b
                     # should be added to the next front
-                    pass  # Replace with your code
+
+                    domination_counts[individual_b] -= 1
+
+                    if (domination_counts[individual_b] == 0):
+                        population_rank[individual_b] = i + 1
+                        next_front.append(individual_b)
 
             i += 1
 
@@ -388,8 +405,26 @@ class NSGAII(EA):
 
         # TODO: For each objective:
         # 1. Sort the front by that objective
-        # 2. Assign infinite distance to boundary solutions
-        # 3. Compute normalized distance for interior solutions
+        for m in range(n_objectives):
+            idx = np.argsort(fitness[front, m])
+
+            # 2. Assign infinite distance to boundary solutions
+            distance[idx[0]]  = np.inf
+            distance[idx[-1]] = np.inf
+
+            # 3. Compute normalized distance for interior solutions
+            for i in range(1, len(idx)-1):
+                prev_sol_fit = fitness[idx[i-1], m]
+                next_sol_fit = fitness[idx[i+1], m]
+                min_fit      = np.min(fitness[:, m])
+                max_fit      = np.max(fitness[:, m])
+                obj_range    = max_fit - min_fit
+
+                if (obj_range == 0): continue
+
+                distance[idx[i]] += (next_sol_fit - prev_sol_fit) / obj_range
+
+        return distance
         
         raise NotImplementedError(
             "TODO: Implement crowding distance calculation.\n"
@@ -417,6 +452,15 @@ class NSGAII(EA):
         # TODO: Compare two individuals
         # 1. Prefer lower rank (better Pareto front)
         # 2. If same rank, prefer larger crowding distance
+
+        if (population_rank[individual_idx] < population_rank[other_individual_idx]) or \
+           (population_rank[individual_idx] == population_rank[other_individual_idx] and crowding_distances[individual_idx] > crowding_distances[other_individual_idx]):
+            
+            return individual_idx
+        
+        else:
+            return other_individual_idx
+        
         
         raise NotImplementedError(
             "TODO: Implement crowding operator.\n"
