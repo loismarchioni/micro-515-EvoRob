@@ -55,6 +55,8 @@ class AntFlatEnvironment(MujocoEnv):
             low=-np.inf, high=np.inf, shape=(obs_size,), dtype=np.float64
         )
 
+        self.prev_distance_from_origin = 0.0
+        
     def reset_model(self):
         noise_low = -0.1
         noise_high = 0.1
@@ -82,7 +84,7 @@ class AntFlatEnvironment(MujocoEnv):
         x_velocity, y_velocity = xy_velocity
 
         observation = self._get_obs()
-        reward, reward_info = self._get_rew(x_velocity, action)
+        reward, reward_info = self._get_rew(x_velocity, y_velocity, action)
         terminated = self._get_termination()
         info = {
             "x_position": self.data.qpos[0],
@@ -92,6 +94,21 @@ class AntFlatEnvironment(MujocoEnv):
             "y_velocity": y_velocity,
             **reward_info,
         }
+
+        # # debugging
+        # print(f"\nx velocity : {x_velocity}")
+        # print(f"y velocity : {y_velocity}")
+        # print(f"rew_info : fwd : {reward_info['reward_forward']}")
+        # print(f"rew_info : health : {reward_info['reward_survive']}")
+        # print(f"rew_info : control : {reward_info['reward_ctrl']}")
+        # print(f"rew_info : lateral : {reward_info['reward_lateral']}")
+        # print(f"rew_info : angular : {reward_info['reward_angular']}")
+        # print(f"rew_info : stagnation : {reward_info['reward_stagnation']}")
+        # print(f"rew_info : travel : {reward_info['reward_travel']}")
+        # print(f"total reward : {reward}\n")
+        # print(f"distance from origin : {info['distance_from_origin']}")
+
+
 
         if self.render_mode == "human":
             self.render()
@@ -104,21 +121,61 @@ class AntFlatEnvironment(MujocoEnv):
         # - velocity: self.data.qvel.flatten() (14 values)
         # This gives 27 total dimensions, making the task translation-invariant
         # Hint: Use np.concatenate() to combine both arrays
+
+        return np.concatenate([self.data.qpos[2:].flatten(), self.data.qvel.flatten()])
+
         raise NotImplementedError("TODO: Implement observation function")
 
-    def _get_rew(self, x_velocity: float, action):
+    def _get_rew(self, x_velocity: float, y_velocity: float, action):
         # TODO: Implement reward function with three components:
-        # 1. forward_reward = x_velocity * forward_reward_weight (weight=1.0)
-        # 2. healthy_reward = healthy_reward_weight (weight=1.0)
-        # 3. ctrl_cost = ctrl_cost_weight * sum of squared actions (weight=0.5)
-        # Final reward = forward_reward + healthy_reward - ctrl_cost
+        # 1. forward_reward = ...
+        # 2. healthy_reward = ...
+        # 3. ctrl_cost = ...
+        # Final reward is the sum of these three components.
         # Return: (reward, reward_info_dict)
+
+        observation = self._get_obs()   # pos : 0=z, 1,2,3,4=quaternion, 5,6,7,8,9,10,11,12=joints
+                                        # vel : 13=x, 14=y, 15=z, 16=ang_x, 17=ang_y, 18=ang_z, 19,20,21,22,23,24,25,26=joints
+        
+        distance_from_origin           = self.data.qpos[0]
+        # distance_from_origin           = np.linalg.norm(self.data.qpos[0:2], ord=2)
+        displacement                   = distance_from_origin - self.prev_distance_from_origin
+        self.prev_distance_from_origin = distance_from_origin
+
+        # reward and cost components
+        forward_reward      =  1.5 * x_velocity #observation[13]
+        healthy_reward      =  1.0 if not self._get_termination() else -2.0
+        ctrl_cost           = -0.01 * float(np.sum(np.square(action)))
+
+        stagnation_cost     =  0.5 * -1.0 if abs(x_velocity) < 0.01 else 1.0
+        travel_reward       =  0.3 * distance_from_origin     
+        lateral_cost        = -0.5 * observation[14]**2
+        angular_cost        = -0.5 * observation[18]**2
+
+
+        final_reward = forward_reward + healthy_reward + ctrl_cost #+ stagnation_cost + travel_reward #+ lateral_cost + angular_cost
+        reward_info  = {"reward_forward"      : forward_reward,
+                        "reward_survive"      : healthy_reward,
+                        "reward_ctrl"         : ctrl_cost,
+                        "reward_lateral"      : lateral_cost,
+                        "reward_angular"      : angular_cost,
+                        "reward_stagnation"   : stagnation_cost,
+                        "reward_travel"       : travel_reward}
+
+        return final_reward, reward_info
+
         raise NotImplementedError("TODO: Implement reward function")
 
     def _get_termination(self):
         # TODO: Robot should terminate when:
-        # - Any value in state is not finite (check with np.isfinite(state).all())
-        # - Torso height (state[2]) is below 0.26 or above 1.0
+        # - Torso height is below 0.26 or above 1.0
         # Return True if NOT healthy (i.e., should terminate)
-        # Hint: Use self.state_vector() to get current state
+        # Hint: Use self.state_vector() to get current state.
+
+        min_height   = 0.26
+        max_height   = 1.0
+        torso_height = self.state_vector()[2]
+        
+        return ((torso_height < min_height) or (torso_height > max_height))
+
         raise NotImplementedError("TODO: Implement termination function")

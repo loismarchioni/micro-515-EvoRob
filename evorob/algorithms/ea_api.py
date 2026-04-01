@@ -1,7 +1,7 @@
 import numpy as np
 
 from evorob.algorithms.base_ea import EA
-
+import cma
 
 class EvoAlgAPI(EA):
     """Evolutionary algorithm API wrapper.
@@ -28,10 +28,16 @@ class EvoAlgAPI(EA):
             **kwargs: Additional arguments for the EA framework
         """
         # TODO: Initialize your chosen EA framework here
-        self.n_params = n_params
-        self.n_gen = num_generations
+        self.n_params        = n_params
+        self.n_gen           = num_generations
         self.population_size = population_size
+        self.bounds          = kwargs["bounds"]
+        self.mutation_prob   = kwargs["mutation_prob"]
+        self.crossover_prob  = kwargs["crossover_prob"]
         
+        # # load checkpoint from previous learning. Change checkpoint folder in base_ea.py
+        # self.load_checkpoint()
+
         # % bookkeeping for base EA
         self.directory_name = output_dir
         self.current_gen = 0
@@ -41,12 +47,22 @@ class EvoAlgAPI(EA):
         self.f_best_so_far = -np.inf
         self.x = None
         self.f = None
+        
+        
+        # EA framework
+        self.es = cma.CMAEvolutionStrategy(x0      = np.random.uniform(self.bounds[0], self.bounds[1], self.n_params),
+                                           sigma0  = self.mutation_prob,
+                                           options = {'popsize': self.population_size,
+                                                      'bounds' : self.bounds
+                                                     }
+                                          )
 
-        raise NotImplementedError(
-            "TODO: Initialize your chosen EA framework.\n"
-            "Recommended: pip install cma, then import cma and create CMAEvolutionStrategy.\n"
-            "See https://github.com/CMA-ES/pycma for documentation."
-        )
+
+        # raise NotImplementedError(
+        #     "TODO: Initialize your chosen EA framework.\n"
+        #     "Recommended: pip install cma, then import cma and create CMAEvolutionStrategy.\n"
+        #     "See https://github.com/CMA-ES/pycma for documentation."
+        # )
 
     def ask(self) -> np.ndarray:
         """Sample population from the algorithm.
@@ -57,6 +73,9 @@ class EvoAlgAPI(EA):
         """
         # TODO: Get new population from your EA
         # Make sure the returned array has shape (population_size, n_params)
+
+        self.x = np.array(self.es.ask())
+        return self.x
 
         raise NotImplementedError(
             "TODO: Implement ask() to sample new population.\n"
@@ -76,6 +95,9 @@ class EvoAlgAPI(EA):
         # Note: Some algorithms minimize, others maximize.
         # Adjust accordingly (negate fitnesses if needed).
         
+        # fitnesses = -fitnesses
+        self.es.tell(population, -fitnesses)
+
         # After updating the EA, do bookkeeping for checkpointing:
         self.full_f.append(fitnesses)
         self.full_x.append(population)
@@ -92,8 +114,8 @@ class EvoAlgAPI(EA):
             self.save_checkpoint()
         self.current_gen += 1
 
-        raise NotImplementedError(
-            "TODO: Implement tell() to update the EA.\n"
-            "Pass the population and their fitness values to update the search distribution.\n"
-            "Don't forget to add the bookkeeping code shown above for checkpointing!"
-        )
+        # raise NotImplementedError(
+        #     "TODO: Implement tell() to update the EA.\n"
+        #     "Pass the population and their fitness values to update the search distribution.\n"
+        #     "Don't forget to add the bookkeeping code shown above for checkpointing!"
+        # )
