@@ -807,31 +807,32 @@ def replay_checkpoint(checkpoint_path: str):
 
 
 if __name__ == "__main__":
+
     # Run unit tests first
     test_exercise_implementation()
 
     # Uncomment to run full NSGA-II evolution:
     run_evolution_nsga(
-        num_generations = 10,
-        population_size = 10,
+        num_generations = 500,
+        population_size = 300,
         run_evaluation  = False,
         compute_score   = True,
         random_seed     = 42,
         n_repeats       = 2,
-        mutation_prob   = 0.3,
-        crossover_prob  = 0.5,
+        mutation_prob   = 0.8,
+        crossover_prob  = 0.1,
         bounds          = (-1, 1),
-        n_parents       = 10,
+        n_parents       = 300,
         ckpt_interval   = 5,
         checkpoint_path = None,
     )
 
-    # Uncomment to replay your checkpoint
+    # # Uncomment to replay your checkpoint
     # replay_checkpoint(
-    #     checkpoint_path="./results/nsga_multi_terrain_ckpt/99"
+    #     checkpoint_path="./results/20260402_161139_nsga_ckpts/199"
     # )
 
-    # Uncomment to plot Pareto fronts from checkpoint
+    # # Uncomment to plot Pareto fronts from checkpoint
     # plot_pareto_fronts_from_checkpoint(
-    #     checkpoint_dir="./results/nsga_multi_terrain_ckpt/99"
+    #     checkpoint_dir="./results/20260402_133530_nsga_ckpts"
     # )

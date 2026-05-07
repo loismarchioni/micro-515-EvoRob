@@ -33,10 +33,14 @@ class NeuralNetworkController(Controller):
 
         self.input_to_hidden  = np.random.uniform(-1, 1, (hidden_size, input_size))
         self.hidden_to_output = np.random.uniform(-1, 1, (output_size, hidden_size))
+        self.bias_hidden      = np.random.uniform(-1, 1, hidden_size)
+        self.bias_output      = np.random.uniform(-1, 1, output_size)
 
         # TODO: Compute number of parameters in each layer
         self.n_params_i2h = input_size  * hidden_size
         self.n_params_h2o = hidden_size * output_size
+        self.n_params_bh  = hidden_size
+        self.n_params_bo  = output_size
 
         self.n_params = self.get_num_params()
 
@@ -59,10 +63,12 @@ class NeuralNetworkController(Controller):
         # Hint: .T transposes a matrix
         # Hint: np.tanh() applies tanh element-wise
 
-        hidden = np.tanh(self.input_to_hidden @ state.T)      # (hidde_size x input_size) x (input_size x batch_size)
-        output = np.tanh(self.hidden_to_output @ hidden).T    # ((output_size x hidden_size) x (hidden_size x batch_size)).T
+        hidden = np.tanh(state @ self.input_to_hidden.T + self.bias_hidden)
+        output = np.tanh(hidden @ self.hidden_to_output.T + self.bias_output)
 
-        return np.clip(output, -1,1)
+
+
+        return np.clip(output, -1.0, 1.0)
 
         raise NotImplementedError("TODO: Implement forward pass")
 
@@ -81,8 +87,26 @@ class NeuralNetworkController(Controller):
         # Hint: Use array slicing: encoding[:n] and encoding[n:]
         # Hint: Use np.reshape(array, (rows, cols)) or array.reshape((rows, cols))
 
-        self.input_to_hidden  = encoding[:self.n_params_i2h].reshape(self.n_hidden, self.n_input)
-        self.hidden_to_output = encoding[self.n_params_i2h:].reshape(self.n_output, self.n_hidden)
+        idx = 0
+
+        # input -> hidden weights
+        end = idx + self.n_params_i2h
+        self.input_to_hidden = encoding[idx:end].reshape(self.n_hidden, self.n_input)
+        idx = end
+
+        # hidden -> Output weights
+        end = idx + self.n_params_h2o
+        self.hidden_to_output = encoding[idx:end].reshape(self.n_output, self.n_hidden)
+        idx = end
+
+        # hidden bias
+        end = idx + self.n_params_bh
+        self.bias_hidden = encoding[idx:end]
+        idx = end
+
+        # output bias
+        end = idx + self.n_params_bo
+        self.bias_output = encoding[idx:end]
 
         return
 
@@ -97,7 +121,7 @@ class NeuralNetworkController(Controller):
         # we compute and store the number of parameters in our NN class.
         # TODO: Return the total number of parameters in both layers!
 
-        return self.n_params_i2h + self.n_params_h2o
+        return self.n_params_i2h + self.n_params_h2o + self.n_params_bh + self.n_params_bo
 
         raise NotImplementedError
 

@@ -411,16 +411,17 @@ class NSGAII(EA):
             # 2. Assign infinite distance to boundary solutions
             distance[idx[0]]  = np.inf
             distance[idx[-1]] = np.inf
-
+            
             # 3. Compute normalized distance for interior solutions
-            for i in range(1, len(idx)-1):
-                prev_sol_fit = fitness[idx[i-1], m]
-                next_sol_fit = fitness[idx[i+1], m]
-                min_fit      = np.min(fitness[:, m])
-                max_fit      = np.max(fitness[:, m])
-                obj_range    = max_fit - min_fit
+            min_fit   = fitness[front[idx[0]], m]
+            max_fit   = fitness[front[idx[-1]], m]
+            obj_range = max_fit - min_fit
 
-                if (obj_range == 0): continue
+            if (obj_range == 0): continue
+            
+            for i in range(1, len(idx)-1):
+                prev_sol_fit = fitness[front[idx[i-1]], m]
+                next_sol_fit = fitness[front[idx[i+1]], m]  
 
                 distance[idx[i]] += (next_sol_fit - prev_sol_fit) / obj_range
 
@@ -454,7 +455,7 @@ class NSGAII(EA):
         # 2. If same rank, prefer larger crowding distance
 
         if (population_rank[individual_idx] < population_rank[other_individual_idx]) or \
-           (population_rank[individual_idx] == population_rank[other_individual_idx] and crowding_distances[individual_idx] > crowding_distances[other_individual_idx]):
+           (population_rank[individual_idx] == population_rank[other_individual_idx] and crowding_distances[individual_idx] >= crowding_distances[other_individual_idx]):
             
             return individual_idx
         
