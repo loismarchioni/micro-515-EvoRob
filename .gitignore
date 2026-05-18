@@ -1,4 +1,6 @@
 results/*
+logs/*
+evaluation_output/*
 /*.xml
 *.mp4
 
