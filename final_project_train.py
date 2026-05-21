@@ -60,11 +60,11 @@ class FinalWorld(World):
         # from evorob.world.robot.controllers.so2 import SO2Controller
         # self.controller = SO2Controller(input_size=27, output_size=8, hidden_size=8)
         self.controller = NeuralNetworkController(
-            input_size=27, output_size=8, hidden_size=8
+            input_size=14, output_size=8, hidden_size=8
         )
 
         self.n_weights     = self.controller.n_params
-        self.n_body_params = 8          # 4 legs × (upper + lower segment length)
+        self.n_body_params = 4          # 4 legs × (upper + lower segment length)
         self.n_params      = self.n_weights + self.n_body_params
 
         # Temporary directory holds AntRobot.xml + one combined world XML per terrain
@@ -96,7 +96,7 @@ class FinalWorld(World):
         # Example — use only joint angles and velocities (14 values):
         #   self.sensor_fn = lambda obs: obs[:14]
         #   self.controller = NeuralNetworkController(input_size=14, ...)
-        self.sensor_fn = None
+        self.sensor_fn = lambda obs: obs[:, :14]
 
         self._create_terrain_file("terrain.png")
 
@@ -117,7 +117,14 @@ class FinalWorld(World):
         body_params    = (genotype[self.n_weights:] + 1) / 4 + 0.1
         self.controller.geno2pheno(control_params)
 
-        front_left_leg, front_left_ankle, front_right_leg, front_right_ankle, back_left_leg, back_left_ankle, back_right_leg, back_right_ankle, = body_params
+        # front_left_leg, front_left_ankle, front_right_leg, front_right_ankle, back_left_leg, back_left_ankle, back_right_leg, back_right_ankle, = body_params
+        front_leg, front_ankle, back_leg, back_ankle = body_params
+
+        front_left_leg   = front_right_leg   = front_leg
+        front_left_ankle = front_right_ankle = front_ankle
+        back_left_leg    = back_right_leg    = back_leg
+        back_left_ankle  = back_right_ankle  = back_ankle
+
 
         # Define the 3D coordinates of the relative tree structure
         front_left_hip_xyz = np.array([0.2, 0.2, 0])
@@ -555,11 +562,13 @@ def run_multi_task_evolution(
 if __name__ == "__main__":
     # Quick smoke-test — 2 generations, tiny population
     run_multi_task_evolution(
-        num_generations=100,
-        population_size=32,
-        n_parents=32,
-        n_repeats=2,
-        n_steps=100,
-        ckpt_interval=1,
-        results_dir=join(ROOT_DIR, "results", "final_test"),
+        num_generations = 50,
+        population_size = 80,
+        n_parents       = 60,
+        n_repeats       = 4,
+        n_steps         = 100,
+        mutation_prob   = 0.4,
+        crossover_prob  = 0.6,
+        ckpt_interval   = 1,
+        results_dir     = join(ROOT_DIR, "results", "final_test"),
     )

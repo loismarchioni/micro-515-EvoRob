@@ -43,7 +43,7 @@ import argparse
 import os
 import numpy as np
 
-os.environ.setdefault("MUJOCO_GL", "egl")
+os.environ.setdefault("MUJOCO_GL", "glfw")
 
 import evorob.world          # registers EvalEnv-v0
 import gymnasium as gym
@@ -58,17 +58,17 @@ from evorob.world.eval_world import EvalWorld
 # Set this to the controller you used during training.
 # Leave None to use the default (mlp_sol, input=27, output=8, hidden=8).
 #
-# from evorob.world.robot.controllers.mlp import NeuralNetworkController
-# MY_CONTROLLER = NeuralNetworkController(input_size=27, output_size=8, hidden_size=8)
+from evorob.world.robot.controllers.mlp import NeuralNetworkController
+MY_CONTROLLER = NeuralNetworkController(input_size=14, output_size=8, hidden_size=8)
 #
 # from evorob.world.robot.controllers.so2 import SO2Controller
 # MY_CONTROLLER = SO2Controller(input_size=27, output_size=8, hidden_size=8)
 
-MY_CONTROLLER = None
+# MY_CONTROLLER = None
 
 # --- Paths ---
 # Option A: directory that contains x_best.npy (recommended)
-CHECKPOINT_DIR = "results/final_project"
+CHECKPOINT_DIR = "results/final_test"
 
 # Option B: provide the robot XML and genotype as separate files
 ROBOT_XML_PATH = None   # e.g. "/abs/path/to/Robot.xml"
@@ -201,6 +201,14 @@ if __name__ == "__main__":
     else:
         # Option A (default): load everything from the checkpoint directory
         world.load_from_checkpoint(checkpoint_dir)
+        world.controller = NeuralNetworkController(
+            input_size=14,
+            output_size=8,
+            hidden_size=8
+        )
+
+        world.sensor_fn = lambda obs: obs[:14]
+
 
     print(f"\nRunning {N_EPISODES} episodes on the evaluation terrain  (seed={SEED}) …")
     rewards = run_episodes(world, N_EPISODES, SEED)

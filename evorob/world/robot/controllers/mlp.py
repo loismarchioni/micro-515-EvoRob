@@ -18,6 +18,8 @@ class NeuralNetworkController(Controller):
         self.n_params = self.get_num_params()
 
     def get_action(self, state):
+        if state.ndim == 1:
+            state = state[None, :]
         hidden = np.tanh(state @ self.input_to_hidden.T)
         output = np.tanh(hidden @ self.hidden_to_output.T)
         return np.clip(output, -1, 1)
