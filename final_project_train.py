@@ -563,10 +563,10 @@ if __name__ == "__main__":
     # Quick smoke-test — 2 generations, tiny population
     run_multi_task_evolution(
         num_generations = 50,
-        population_size = 80,
-        n_parents       = 60,
+        population_size = 100,
+        n_parents       = 40,
         n_repeats       = 4,
-        n_steps         = 100,
+        n_steps         = 300,
         mutation_prob   = 0.4,
         crossover_prob  = 0.6,
         ckpt_interval   = 1,

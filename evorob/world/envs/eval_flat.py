@@ -44,7 +44,7 @@ class EvalFlatEnv(MujocoEnv, utils.EzPickle):
             ctrl_cost_weight, cfrc_cost_weight, reset_noise_scale, **kwargs,
         )
 
-        self._ctrl_cost_weight = ctrl_cost_weight
+        self._ctrl_cost_weight = min(ctrl_cost_weight, 0.01)
         self._cfrc_cost_weight = cfrc_cost_weight
         self._reset_noise_scale = reset_noise_scale
 
@@ -70,17 +70,24 @@ class EvalFlatEnv(MujocoEnv, utils.EzPickle):
         self.do_simulation(action, self.frame_skip)
         x_after = self.data.qpos[0]
 
+        terminated = self._is_terminated()
+
         x_velocity = (x_after - x_before) / self.dt
-        healthy_reward = 1.0
+        healthy_reward = -10.0 if terminated else 1.0
         ctrl_cost = float(np.sum(action ** 2) * self._ctrl_cost_weight)
         cfrc_cost = float(np.sum(self.data.cfrc_ext[1:] ** 2) * self._cfrc_cost_weight)
 
-        terminated = self._is_terminated()
-        reward = healthy_reward + x_velocity - ctrl_cost - cfrc_cost
+
+        # ADDONS
+        forward_reward = 5.0*(x_after - x_before)
+        idling_cost    = 0.0 if abs(x_velocity) > 0.05 else 1.0
+
+        reward = healthy_reward + forward_reward - ctrl_cost - cfrc_cost - idling_cost
 
         info = {
-            "healthy_reward": -10.0 if terminated else healthy_reward,
+            "healthy_reward": healthy_reward,
             "x_position": float(x_after),
+            "forward_reward": forward_reward,
             "ctrl_cost": ctrl_cost,
             "cfrc_cost": cfrc_cost,
             "x_velocity": x_velocity,
