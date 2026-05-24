@@ -59,10 +59,10 @@ from evorob.world.eval_world import EvalWorld
 # Leave None to use the default (mlp_sol, input=27, output=8, hidden=8).
 #
 from evorob.world.robot.controllers.mlp import NeuralNetworkController
-MY_CONTROLLER = NeuralNetworkController(input_size=14, output_size=8, hidden_size=8)
+# MY_CONTROLLER = NeuralNetworkController(input_size=14, output_size=8, hidden_size=8)
 #
-# from evorob.world.robot.controllers.so2 import SO2Controller
-# MY_CONTROLLER = SO2Controller(input_size=27, output_size=8, hidden_size=8)
+from evorob.world.robot.controllers.so2 import SO2Controller
+MY_CONTROLLER = SO2Controller(input_size=27, output_size=8, hidden_size=8)
 
 # MY_CONTROLLER = None
 
@@ -76,7 +76,7 @@ GENOTYPE_PATH  = None   # e.g. "/abs/path/to/x_best.npy"
 
 # --- Output ---
 OUTPUT_DIR = "evaluation_output"
-N_EPISODES = 10     # increase to 256 for the final leaderboard submission
+N_EPISODES = 100     # increase to 256 for the final leaderboard submission
 SEED       = 0      # fixed — do NOT change for a fair comparison
 MAX_STEPS  = 1000   # fixed — do NOT change
 

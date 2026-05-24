@@ -71,16 +71,20 @@ class EvalIceEnv(MujocoEnv, utils.EzPickle):
         self.do_simulation(action, self.frame_skip)
         x_after = self.data.qpos[0]
 
+
+        terminated = self._is_terminated()
+
         x_velocity = (x_after - x_before) / self.dt
-        healthy_reward = 1.0
+        healthy_reward = -10.0 if terminated else 1.0
         ctrl_cost = float(np.sum(action ** 2) * self._ctrl_cost_weight)
         cfrc_cost = float(np.sum(self.data.cfrc_ext[1:] ** 2) * self._cfrc_cost_weight)
 
-        terminated = self._is_terminated()
+        
+        
         reward = healthy_reward + x_velocity - ctrl_cost - cfrc_cost
 
         info = {
-            "healthy_reward": -10.0 if terminated else healthy_reward,
+            "healthy_reward":  healthy_reward,
             "x_position": float(x_after),
             "ctrl_cost": ctrl_cost,
             "cfrc_cost": cfrc_cost,

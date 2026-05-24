@@ -30,7 +30,7 @@ class EvalFlatEnv(MujocoEnv, utils.EzPickle):
         robot_path: str,
         frame_skip: int = 5,
         default_camera_config: dict = DEFAULT_CAMERA_CONFIG,
-        ctrl_cost_weight: float = 0.5,
+        ctrl_cost_weight: float = 0.005,
         cfrc_cost_weight: float = 5e-4,
         reset_noise_scale: float = 0.1,
         **kwargs,
@@ -66,32 +66,43 @@ class EvalFlatEnv(MujocoEnv, utils.EzPickle):
         )
 
     def step(self, action):
-        x_before = self.data.qpos[0]
+        xyz_before = self.data.body(1).xpos[:3].copy()
         self.do_simulation(action, self.frame_skip)
-        x_after = self.data.qpos[0]
+        xyz_after = self.data.body(1).xpos[:3].copy()
 
         terminated = self._is_terminated()
 
-        x_velocity = (x_after - x_before) / self.dt
-        healthy_reward = -10.0 if terminated else 1.0
+        xyz_velocity = (xyz_after - xyz_before) / self.dt
+        x_velocity = float(xyz_velocity[0])
+        x_position = float(xyz_after[0])
+        x_delta_pos = float(xyz_after[0]) - float(xyz_before[0])
+
+
+        healthy_reward = -5.0 if terminated else 0.0
         ctrl_cost = float(np.sum(action ** 2) * self._ctrl_cost_weight)
         cfrc_cost = float(np.sum(self.data.cfrc_ext[1:] ** 2) * self._cfrc_cost_weight)
 
 
         # ADDONS
-        forward_reward = 5.0*(x_after - x_before)
-        idling_cost    = 0.0 if abs(x_velocity) > 0.05 else 1.0
+        forward_reward = 20.0 * x_delta_pos
+        idling_cost    = 1.0 if abs(x_delta_pos) < 0.01 else 0.0
+        distance_x     = 0.1 * x_position
 
-        reward = healthy_reward + forward_reward - ctrl_cost - cfrc_cost - idling_cost
+        reward = healthy_reward + forward_reward + distance_x - ctrl_cost - cfrc_cost - idling_cost
 
         info = {
             "healthy_reward": healthy_reward,
-            "x_position": float(x_after),
             "forward_reward": forward_reward,
             "ctrl_cost": ctrl_cost,
             "cfrc_cost": cfrc_cost,
+            "idling_cost": idling_cost,
+            "x_position": x_position,
+            "delta_posx": x_delta_pos,
             "x_velocity": x_velocity,
         }
+
+        # print(info)
+        # print("\n")
 
         if self.render_mode == "human":
             self.render()
@@ -101,8 +112,8 @@ class EvalFlatEnv(MujocoEnv, utils.EzPickle):
         z = float(self.data.qpos[2])
         return (
             not np.isfinite(self.state_vector()).all()
-            or z < 0.2
-            or z > 1.0
+            or z < 0.25
+            or z > 2.0
         )
 
     def _get_obs(self):

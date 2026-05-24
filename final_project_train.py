@@ -57,11 +57,12 @@ class FinalWorld(World):
         # Whatever you choose determines self.n_weights (controller parameter count).
         #
         # from evorob.world.robot.controllers.mlp import NeuralNetworkController  # your impl
-        # from evorob.world.robot.controllers.so2 import SO2Controller
-        # self.controller = SO2Controller(input_size=27, output_size=8, hidden_size=8)
-        self.controller = NeuralNetworkController(
-            input_size=14, output_size=8, hidden_size=8
-        )
+        from evorob.world.robot.controllers.so2 import SO2Controller
+        self.controller = SO2Controller(
+            input_size=27, output_size=8, hidden_size=8)
+        # self.controller = NeuralNetworkController(
+        #     input_size=14, output_size=8, hidden_size=8
+        # )
 
         self.n_weights     = self.controller.n_params
         self.n_body_params = 4          # 4 legs × (upper + lower segment length)
@@ -96,7 +97,7 @@ class FinalWorld(World):
         # Example — use only joint angles and velocities (14 values):
         #   self.sensor_fn = lambda obs: obs[:14]
         #   self.controller = NeuralNetworkController(input_size=14, ...)
-        self.sensor_fn = lambda obs: obs[:, :14]
+        self.sensor_fn = lambda obs: obs[:, :27]
 
         self._create_terrain_file("terrain.png")
 
@@ -288,8 +289,10 @@ class FinalWorld(World):
         self.update_robot_xml(genotype)
         return np.array([
             self._eval_flat(n_repeats, n_steps),
-            self._eval_ice(n_repeats, n_steps),
-            self._eval_hill(n_repeats, n_steps),
+            # self._eval_ice(n_repeats, n_steps),
+            # self._eval_hill(n_repeats, n_steps),
+            0.0,
+            0.0,
         ])
 
 
@@ -562,13 +565,13 @@ def run_multi_task_evolution(
 if __name__ == "__main__":
     # Quick smoke-test — 2 generations, tiny population
     run_multi_task_evolution(
-        num_generations = 50,
-        population_size = 100,
-        n_parents       = 40,
+        num_generations = 30,
+        population_size = 50,
+        n_parents       = 20,
         n_repeats       = 4,
         n_steps         = 300,
-        mutation_prob   = 0.4,
-        crossover_prob  = 0.6,
+        mutation_prob   = 0.3,
+        crossover_prob  = 0.5,
         ckpt_interval   = 1,
         results_dir     = join(ROOT_DIR, "results", "final_test"),
     )
