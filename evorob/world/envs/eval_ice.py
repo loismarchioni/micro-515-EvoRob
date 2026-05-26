@@ -67,25 +67,28 @@ class EvalIceEnv(MujocoEnv, utils.EzPickle):
         )
 
     def step(self, action):
-        x_before = self.data.qpos[0]
+        xyz_before = self.data.body(1).xpos[:3].copy()
         self.do_simulation(action, self.frame_skip)
-        x_after = self.data.qpos[0]
+        xyz_after = self.data.body(1).xpos[:3].copy()
 
+        xyz_velocity = (xyz_after - xyz_before) / self.dt
+        x_velocity = float(xyz_velocity[0])
+        x_position = float(xyz_after[0])
 
-        terminated = self._is_terminated()
-
-        x_velocity = (x_after - x_before) / self.dt
-        healthy_reward = -10.0 if terminated else 1.0
         ctrl_cost = float(np.sum(action ** 2) * self._ctrl_cost_weight)
         cfrc_cost = float(np.sum(self.data.cfrc_ext[1:] ** 2) * self._cfrc_cost_weight)
 
-        
-        
-        reward = healthy_reward + x_velocity - ctrl_cost - cfrc_cost
+        terminated = self._is_terminated()
+
+        healthy_reward = -10.0 if terminated else 1.0
+        forward_reward = 10.0*(xyz_after[0] - xyz_before[0])
+        idling_cost    = 1.0 if abs(x_velocity) < 0.05 else 0.0
+
+        reward = healthy_reward + forward_reward + x_position - ctrl_cost - cfrc_cost - idling_cost
 
         info = {
-            "healthy_reward":  healthy_reward,
-            "x_position": float(x_after),
+            "healthy_reward": healthy_reward,
+            "x_position": float(xyz_after[0]),
             "ctrl_cost": ctrl_cost,
             "cfrc_cost": cfrc_cost,
             "x_velocity": x_velocity,
@@ -99,8 +102,8 @@ class EvalIceEnv(MujocoEnv, utils.EzPickle):
         z = float(self.data.qpos[2])
         return (
             not np.isfinite(self.state_vector()).all()
-            or z < 0.2
-            or z > 1.0
+            or z < 0.25
+            or z > 2.0
         )
 
     def _get_obs(self):

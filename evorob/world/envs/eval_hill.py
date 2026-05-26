@@ -73,14 +73,12 @@ class EvalHillEnv(MujocoEnv, utils.EzPickle):
         x_velocity = float(xyz_velocity[0])
         x_position = float(xyz_after[0])
 
-
-        terminated = self._is_terminated(xyz_velocity)
-
-        healthy_reward = -10.0 if terminated else 1.0
         ctrl_cost = float(np.sum(action ** 2) * self._ctrl_cost_weight)
         cfrc_cost = float(np.sum(self.data.cfrc_ext[1:] ** 2) * self._cfrc_cost_weight)
 
-        
+        terminated = self._is_terminated(xyz_velocity)
+
+        healthy_reward = -5.0 if terminated else 1.0
 
         reward = healthy_reward + x_position - ctrl_cost - cfrc_cost
 
